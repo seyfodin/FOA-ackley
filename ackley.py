@@ -108,11 +108,6 @@ class Ackley:
 
         plt.show()
 
-
-
-
-
-
     def __del__(self):
         del self.__inf
         del self.__sup
