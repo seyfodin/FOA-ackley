@@ -1,12 +1,14 @@
-import sys
 import random
-from ackley import Ackley
+import sys
+
 import numpy as np
+
+from ackley import Ackley
 
 
 class FOA:
-    def __init__(self, ackley=Ackley(), numSedds=30, maxTime=1000, dim=2, lifeTime=2, areaLimit=30, transferRate=5,
-                 localSeeding=4, globalSeeding=3):
+    def __init__(self, ackley=Ackley(), numSedds=30, maxTime=1000, dim=2, lifeTime=2, areaLimit=30, transferRate=4,
+                 localSeeding=4, globalSeeding=2):
         self._ackley = ackley
         self._numSeeds = numSedds
         self._mAxTime = maxTime
@@ -52,23 +54,22 @@ class FOA:
     def controlForest(self):
         temp_tree = []
         for tree in self._trees:
-            if tree[self._dim+1] <= self._lifeTime:
+            if tree[self._dim + 1] <= self._lifeTime:
                 temp_tree.append(tree)
             else:
                 self._candidate.append(tree)
         if len(temp_tree) > self._areLimit:
-            temp_tree.sort(key= lambda t:t[self._dim], reverse=True)
+            temp_tree.sort(key=lambda t: t[self._dim], reverse=True)
             while len(temp_tree) > self._areLimit:
                 self._candidate.append(temp_tree.pop())
         self._trees.clear()
         for tree in temp_tree:
             self._trees.append(tree)
 
-
     def globalSeeding(self):
-        selected_tree=[]
-        while len(selected_tree) <= (len(self._candidate)*self._transferRate)/100:
-            selected_tree.append(self._candidate.pop(random.randrange(0,len(self._candidate))))
+        selected_tree = []
+        while len(selected_tree) <= (len(self._candidate) * self._transferRate) / 100:
+            selected_tree.append(self._candidate.pop(random.randrange(0, len(self._candidate))))
         for tree in selected_tree:
             moveindex = [random.randrange(0, self._dim) for i in range(0, self._globalSeeding)]
             for mi in moveindex:
@@ -80,17 +81,17 @@ class FOA:
         self._candidate.clear()
 
     def updateBest(self):
-        best_index=sys.maxsize
-        besttone=sys.float_info.min
+        best_index = sys.maxsize
+        besttone = sys.float_info.min
         for index in range(0, len(self._trees)):
             if self._trees[index][self._dim] > besttone:
-                besttone=self._trees[index][self._dim]
-                best_index=index
-        temp_best=self._trees.pop(best_index)
-        temp_best[self._dim+1]=0
-        self._trees.insert(0,temp_best)
+                besttone = self._trees[index][self._dim]
+                best_index = index
+        temp_best = self._trees.pop(best_index)
+        temp_best[self._dim + 1] = 0
+        self._trees.insert(0, temp_best)
         if temp_best[self._dim] == self._best[self._dim]:
-           self._notchange = self._notchange +1
+            self._notchange = self._notchange + 1
         elif temp_best[self._dim] > self._best[self._dim]:
             self._notchange = 1
             self._best = temp_best.copy()
@@ -98,25 +99,34 @@ class FOA:
             print('some problem !!!!!!')
 
     def run(self):
-        bestIndex = 0
-        ackleyResult = 0
         bestIndex = random.randint(0, len(self._trees) - 1)
         self._best = self._trees[bestIndex]
 
-        t = 0
-        while t < self._mAxTime :
-            print("##### The iteration number is:", t, " ##########")
-            self.localSeeding()
-            self.controlForest()
-            self.globalSeeding()
-            self.updateBest()
-            print('############')
-            t += 1
-        ackleyResult = self.fitness(np.array(self._best[0:self._dim]))
-        print('##### best result ######')
-        print(self._best)
-        print('################')
+        if self._dim == 2:
+            self._ackley.animatePlot(self._mAxTime,self.update)
+        else:
+            t = 0
+            while t < self._mAxTime:
+                self.update(t,)
+                t += 1
+            ackleyResult = self.fitness(np.array(self._best[0:self._dim]))
+            print('##### best result ######')
+            print(self._best)
+            print('################')
 
-        print('##### ackleyResult is ##########')
-        print(ackleyResult)
-        print('################')
+            print('##### ackleyResult is ##########')
+            print(ackleyResult)
+            print('################')
+
+    def update(self,i, scat):
+        print("##### The iteration number is:", i, " ##########")
+        self.localSeeding()
+        self.controlForest()
+        self.globalSeeding()
+        self.updateBest()
+        if scat:
+            xdata = [tree[0] for tree in self._trees]
+            ydata = [tree[1] for tree in self._trees]
+            zdata = [self._ackley.ackley(np.array([tree[0],tree[1]])) for tree in self._trees]
+            scat._offsets3d = (xdata, ydata, zdata)
+        print('############')
