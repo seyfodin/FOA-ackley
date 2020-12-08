@@ -129,4 +129,7 @@ class FOA:
             ydata = [tree[1] for tree in self._trees]
             zdata = [self._ackley.ackley(np.array([tree[0],tree[1]])) for tree in self._trees]
             scat._offsets3d = (xdata, ydata, zdata)
+        print('##### best result ######')
+        print(self._best)
+        print(self._ackley.ackley(np.array(self._best[0:self._dim])))
         print('############')

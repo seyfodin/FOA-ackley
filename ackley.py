@@ -100,9 +100,9 @@ class Ackley:
         cos_term = -np.exp((np.cos(c*X) + np.cos(c*Y)) / 2)
         Z = a + np.exp(1) + sum_sq_term + cos_term
 
-        self.__ax.plot_surface(X, Y, Z,cmap=cm.coolwarm, linewidth=0, alpha = 0.5, edgecolor = 'k',zorder=-1)
+        self.__ax.plot_surface(X, Y, Z,cmap=cm.coolwarm, linewidth=0, alpha = 0.5, edgecolor = 'k')
 
-        scat =self.__ax.scatter([], [], [],marker='x',s=20,zorder=10)
+        scat =self.__ax.scatter([], [], [],marker='x',s=20,alpha = 1)
 
         anim=matplotlib.animation.FuncAnimation(self.__fig, update, frames=maxtime,repeat=False,fargs=(scat,))
 
