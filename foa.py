@@ -7,8 +7,7 @@ from ackley import Ackley
 
 
 class FOA:
-    def __init__(self, ackley=Ackley(), numSedds=30, maxTime=1000, dim=2, lifeTime=2, areaLimit=30, transferRate=4,
-                 localSeeding=4, globalSeeding=2):
+    def __init__(self, ackley=Ackley(), numSedds=30, maxTime=1000, dim=2, lifeTime=2, areaLimit=30, transferRate=4, localSeeding=4, globalSeeding=2):
         self._ackley = ackley
         self._numSeeds = numSedds
         self._mAxTime = maxTime
