@@ -12,7 +12,6 @@ class FOA:
         self._numSeeds = numSedds
         self._mAxTime = maxTime
         self._dim = self._fun.getDim()
-        print(self._dim)
         self._lifeTime = lifeTime
         self._areLimit = areaLimit
         self._transferRate = transferRate
