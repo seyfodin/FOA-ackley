@@ -7,14 +7,16 @@ from ackley import Ackley
 
 
 class FOA:
-    def __init__(self, ackley=Ackley(), numSedds=30, maxTime=1000, dim=2, lifeTime=2, areaLimit=30, transferRate=4, localSeeding=4, globalSeeding=2):
-        self._ackley = ackley
+    def __init__(self, fun=Ackley(), numSedds=30, maxTime=1000, lifeTime=2, areaLimit=30, localMotion=0.1, localSeeding=4,transferRate=4, globalSeeding=2):
+        self._fun = fun
         self._numSeeds = numSedds
         self._mAxTime = maxTime
-        self._dim = dim
+        self._dim = self._fun.getDim()
+        print(self._dim)
         self._lifeTime = lifeTime
         self._areLimit = areaLimit
         self._transferRate = transferRate
+        self._localMotion = localMotion
         self._localSeeding = localSeeding
         self._globalSeeding = globalSeeding
         self._trees = []
@@ -24,15 +26,9 @@ class FOA:
         for i in range(0, self._numSeeds):
             self._trees.append([])
             for j in range(0, self._dim):
-                self._trees[i].append(random.uniform(self._ackley.getInf(), self._ackley.getSup()))
-            self._trees[i].append(self.fitness(np.array(self._trees[i][0:self._dim].copy())))
+                self._trees[i].append(random.uniform(self._fun.getInf(), self._fun.getSup()))
+            self._trees[i].append(self._fun.fitness(np.array(self._trees[i][0:self._dim].copy())))
             self._trees[i].append(0)
-
-    def fitness(self, X):
-        f_x = self._ackley.ackley(X)
-        if f_x == 0:
-            return sys.float_info.max
-        return 1 / f_x;
 
     def localSeeding(self):
         new_trees = []
@@ -41,8 +37,8 @@ class FOA:
                 moveindex = [random.randrange(0, self._dim) for i in range(0, self._localSeeding)]
                 for mi in moveindex:
                     trans = tree.copy()
-                    trans[mi] = trans[mi] + random.uniform(-0.2, 2.0)
-                    trans[self._dim] = self.fitness(np.array(trans[0:self._dim].copy()))
+                    trans[mi] = trans[mi] + random.uniform(-1*self._localMotion, self._localMotion)
+                    trans[self._dim] = self._fun.fitness(np.array(trans[0:self._dim].copy()))
                     trans[self._dim + 1] = 0
                     new_trees.append(trans)
             tree[self._dim + 1] += 1
@@ -73,8 +69,8 @@ class FOA:
             moveindex = [random.randrange(0, self._dim) for i in range(0, self._globalSeeding)]
             for mi in moveindex:
                 trans = tree.copy()
-                trans[mi] = random.uniform(self._ackley.getInf(), self._ackley.getSup())
-                trans[self._dim] = self.fitness(np.array(trans[0:self._dim].copy()))
+                trans[mi] = random.uniform(self._fun.getInf(), self._fun.getSup())
+                trans[self._dim] = self._fun.fitness(np.array(trans[0:self._dim].copy()))
                 trans[self._dim + 1] = 0
                 self._trees.append(trans)
         self._candidate.clear()
@@ -101,21 +97,23 @@ class FOA:
         bestIndex = random.randint(0, len(self._trees) - 1)
         self._best = self._trees[bestIndex]
 
-        if self._dim == 2:
-            self._ackley.animatePlot(self._mAxTime,self.update)
+
+        animate = getattr(self._fun, "animate", None)
+        if callable(animate) and self._dim <= 2:
+            self._fun.animate(self._mAxTime,self.update)
         else:
             t = 0
             while t < self._mAxTime:
                 self.update(t,)
                 t += 1
-            ackleyResult = self.fitness(np.array(self._best[0:self._dim]))
-            print('##### best result ######')
-            print(self._best)
-            print('################')
 
-            print('##### ackleyResult is ##########')
-            print(ackleyResult)
-            print('################')
+        ackleyResult = self._fun.fitnessG(np.array(self._best[0:self._dim]))
+        print('##### best result ######')
+        print(self._best)
+        print('################')
+        print('##### result is ##########')
+        print(ackleyResult)
+        print('################')
 
     def update(self,i, scat):
         print("##### The iteration number is:", i, " ##########")
@@ -123,12 +121,23 @@ class FOA:
         self.controlForest()
         self.globalSeeding()
         self.updateBest()
-        if scat:
+        if scat and self._fun.getAnimType()=='3d':
             xdata = [tree[0] for tree in self._trees]
             ydata = [tree[1] for tree in self._trees]
-            zdata = [self._ackley.ackley(np.array([tree[0],tree[1]])) for tree in self._trees]
-            scat._offsets3d = (xdata, ydata, zdata)
+            zdata = [self._fun.fitnessG(np.array([tree[0],tree[1]])) for tree in self._trees]
+            scat._offsets3d=(xdata, ydata, zdata)
+
+        if scat and self._fun.getAnimType()=='contour':
+            xdata = [tree[0] for tree in self._trees]
+            ydata = [tree[1] for tree in self._trees]
+            scat.set_data(xdata, ydata)
+
+        if scat and self._fun.getAnimType()=='2d':
+            xdata = [tree[0] for tree in self._trees]
+            ydata = [self._fun.fitnessG(np.array([tree[0]])) for tree in self._trees]
+            scat.set_data(xdata, ydata)
+
         print('##### best result ######')
         print(self._best)
-        print(self._ackley.ackley(np.array(self._best[0:self._dim])))
+        print(self._fun.fitnessG(np.array(self._best[0:self._dim])))
         print('############')
