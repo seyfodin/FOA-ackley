@@ -2,7 +2,7 @@
 Ackley Evaluation Of Forest Optimization Algorithm 
 
 # FOA
-Forest Optimization Algorithm - Matlab Code
+Forest Optimization Algorithm - Python Code
 
 Doi: https://doi.org/10.1016/j.eswa.2014.05.009
 
