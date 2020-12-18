@@ -65,13 +65,16 @@ class FOA:
         while len(selected_tree) <= (len(self._candidate) * self._transferRate) / 100:
             selected_tree.append(self._candidate.pop(random.randrange(0, len(self._candidate))))
         for tree in selected_tree:
-            moveindex = [random.randrange(0, self._dim) for i in range(0, self._globalSeeding)]
+            moveindex =[]
+            while len(moveindex) < self._globalSeeding:
+                r=random.randrange(0, self._dim)
+                if r not in moveindex: moveindex.append(r)
+            trans = tree.copy()
             for mi in moveindex:
-                trans = tree.copy()
                 trans[mi] = random.uniform(self._fun.getInf(), self._fun.getSup())
-                trans[self._dim] = self._fun.fitness(np.array(trans[0:self._dim].copy()))
-                trans[self._dim + 1] = 0
-                self._trees.append(trans)
+            trans[self._dim] = self._fun.fitness(np.array(trans[0:self._dim].copy()))
+            trans[self._dim + 1] = 0
+            self._trees.append(trans)
         self._candidate.clear()
 
     def updateBest(self):
